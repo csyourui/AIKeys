@@ -9,9 +9,14 @@ import SwiftUI
 
 @main
 struct AIKeysApp: App {
+    @StateObject private var keyStore = APIKeyStore()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    // 应用启动时的初始化操作（如果需要）
+                }
         }
     }
 }
