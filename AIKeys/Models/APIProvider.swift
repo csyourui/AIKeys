@@ -10,8 +10,16 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
     let description: String
     let logoName: String?
     let iconURL: String?
-    
-    init(id: UUID = UUID(), name: String, homepage: String, baseURL: String, description: String, logoName: String? = nil, iconURL: String? = nil) {
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        homepage: String,
+        baseURL: String,
+        description: String,
+        logoName: String? = nil,
+        iconURL: String? = nil
+    ) {
         self.id = id
         self.name = name
         self.homepage = homepage
@@ -20,15 +28,15 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
         self.logoName = logoName
         self.iconURL = iconURL
     }
-    
+
     static func == (lhs: APIProvider, rhs: APIProvider) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     // 获取图标
     var iconImage: Image? {
         if let logoName = logoName {
@@ -36,7 +44,7 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
         }
         return nil
     }
-    
+
     // 预定义的常用API提供商
     static let commonProviders: [APIProvider] = [
         APIProvider(
@@ -52,14 +60,16 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
             baseURL: "https://api.deepseek.com",
             description: "提供GPT系列模型API访问的人工智能公司",
             logoName: "ProviderIcons"
-        )
+        ),
     ]
-    
+
     // 根据名称查找预定义的提供商
     static func findCommonProvider(byName name: String) -> APIProvider? {
-        return commonProviders.first { $0.name.lowercased() == name.lowercased() }
+        return commonProviders.first {
+            $0.name.lowercased() == name.lowercased()
+        }
     }
-    
+
     // 创建自定义提供商
     static func createCustomProvider(name: String) -> APIProvider {
         return APIProvider(

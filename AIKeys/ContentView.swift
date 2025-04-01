@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var searchText = ""
     @State private var selectedAPIKey: APIKey?
     @State private var showingHome = true  // 控制是否显示首页
-    
+
     var body: some View {
         NavigationSplitView {
             // 侧边栏视图
@@ -30,7 +30,10 @@ struct ContentView: View {
             }
             .onChange(of: keyStore.apiKeys) { oldValue, newValue in
                 // 如果没有选中的密钥或者选中的密钥已被删除，则选择第一个密钥
-                if selectedAPIKey == nil || !newValue.contains(where: { $0.id == selectedAPIKey?.id }) {
+                if selectedAPIKey == nil
+                    || !newValue.contains(where: { $0.id == selectedAPIKey?.id }
+                    )
+                {
                     if !newValue.isEmpty && showingHome {
                         showingHome = false
                     }

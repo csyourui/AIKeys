@@ -7,7 +7,7 @@ class APIKeyValidationViewModel: ObservableObject {
         case validating
         case valid(models: [AIModel])
         case invalid(String)
-        
+
         var color: Color {
             switch self {
             case .notValidated:
@@ -20,7 +20,7 @@ class APIKeyValidationViewModel: ObservableObject {
                 return .red
             }
         }
-        
+
         var icon: String {
             switch self {
             case .notValidated:
@@ -33,7 +33,7 @@ class APIKeyValidationViewModel: ObservableObject {
                 return "xmark.circle.fill"
             }
         }
-        
+
         var description: String {
             switch self {
             case .notValidated:
@@ -50,7 +50,7 @@ class APIKeyValidationViewModel: ObservableObject {
                 return "无效: \(message)"
             }
         }
-        
+
         var models: [AIModel] {
             switch self {
             case .valid(let models):
@@ -59,7 +59,7 @@ class APIKeyValidationViewModel: ObservableObject {
                 return []
             }
         }
-        
+
         static func == (lhs: ValidationStatus, rhs: ValidationStatus) -> Bool {
             switch (lhs, rhs) {
             case (.notValidated, .notValidated):
@@ -75,41 +75,74 @@ class APIKeyValidationViewModel: ObservableObject {
             }
         }
     }
-    
+
     @Published var status: ValidationStatus = .notValidated
-    
+    private let apiKeyStore = APIKeyStore()
+
+    // 初始化时检查API密钥的验证状态
+    func checkSavedValidation(apiKey: APIKey) {
+        if apiKey.isValidated && !apiKey.availableModels.isEmpty {
+            self.status = .valid(models: apiKey.availableModels)
+        } else {
+            self.status = .notValidated
+        }
+    }
+
     func validateAPIKey(apiKey: APIKey) {
-        guard let baseURL = apiKey.providerInfo?.baseURL, !baseURL.isEmpty else {
+        guard let baseURL = apiKey.providerInfo?.baseURL, !baseURL.isEmpty
+        else {
             self.status = .invalid("提供商基础URL为空")
+            apiKeyStore.updateAPIKeyValidation(
+                id: apiKey.id,
+                isValidated: false,
+                models: []
+            )
             return
         }
-        
+
         self.status = .validating
-        
-        APIService.validateAPIKey(baseURL: baseURL, apiKey: apiKey.value) { [weak self] result in
+
+        APIService.validateAPIKey(baseURL: baseURL, apiKey: apiKey.value) {
+            [weak self] result in
             DispatchQueue.main.async {
                 guard let self = self else { return }
-                
+
                 switch result {
                 case .success(let models):
                     self.status = .valid(models: models)
+                    // 保存验证结果
+                    self.apiKeyStore.updateAPIKeyValidation(
+                        id: apiKey.id,
+                        isValidated: true,
+                        models: models
+                    )
+
                 case .failure(let error):
+                    var errorMessage = ""
                     switch error {
                     case .invalidURL:
-                        self.status = .invalid("无效的URL")
+                        errorMessage = "无效的URL"
                     case .requestFailed(let underlyingError):
-                        self.status = .invalid("请求失败: \(underlyingError.localizedDescription)")
+                        errorMessage =
+                            "请求失败: \(underlyingError.localizedDescription)"
                     case .invalidResponse:
-                        self.status = .invalid("无效的响应")
+                        errorMessage = "无效的响应"
                     case .unauthorized:
-                        self.status = .invalid("未授权，API密钥无效")
+                        errorMessage = "未授权，API密钥无效"
                     case .serverError(let code):
-                        self.status = .invalid("服务器错误: \(code)")
+                        errorMessage = "服务器错误: \(code)"
                     case .decodingError:
-                        self.status = .invalid("解析响应失败")
+                        errorMessage = "解析响应失败"
                     case .unknown:
-                        self.status = .invalid("未知错误")
+                        errorMessage = "未知错误"
                     }
+                    self.status = .invalid(errorMessage)
+                    // 保存验证失败结果
+                    self.apiKeyStore.updateAPIKeyValidation(
+                        id: apiKey.id,
+                        isValidated: false,
+                        models: []
+                    )
                 }
             }
         }

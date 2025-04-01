@@ -5,7 +5,7 @@ struct DetailView: View {
     @Binding var selectedAPIKey: APIKey?
     @Binding var showingHome: Bool
     @Binding var showingAddSheet: Bool
-    
+
     var body: some View {
         if showingHome {
             // 显示首页
@@ -36,7 +36,7 @@ struct DetailView: View {
                     Text("添加新密钥")
                 }
                 .buttonStyle(.borderedProminent)
-                
+
                 Button(action: {
                     showingHome = true
                 }) {

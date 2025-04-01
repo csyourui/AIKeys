@@ -6,18 +6,18 @@ struct SidebarView: View {
     @Binding var showingHome: Bool
     @Binding var showingAddSheet: Bool
     @Binding var searchText: String
-    
+
     var filteredKeys: [APIKey] {
         if searchText.isEmpty {
             return keyStore.apiKeys
         } else {
-            return keyStore.apiKeys.filter { 
-                $0.name.localizedCaseInsensitiveContains(searchText) ||
-                $0.provider.localizedCaseInsensitiveContains(searchText)
+            return keyStore.apiKeys.filter {
+                $0.name.localizedCaseInsensitiveContains(searchText)
+                    || $0.provider.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
-    
+
     var body: some View {
         VStack(spacing: 0) {
             if filteredKeys.isEmpty && searchText.isEmpty {
@@ -40,7 +40,7 @@ struct SidebarView: View {
             }
         }
     }
-    
+
     private var emptyStateView: some View {
         ContentUnavailableView {
             Label("没有API密钥", systemImage: "key.slash")
@@ -59,7 +59,7 @@ struct SidebarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    
+
     private var keyListView: some View {
         List(selection: $selectedAPIKey) {
             // 导航部分
@@ -72,7 +72,7 @@ struct SidebarView: View {
                     selectedAPIKey = nil
                     showingHome = true
                 }
-                
+
                 Button(action: {
                     showingAddSheet = true
                 }) {
@@ -80,7 +80,7 @@ struct SidebarView: View {
                 }
                 .buttonStyle(.plain)
             }
-            
+
             // API密钥部分
             if !filteredKeys.isEmpty {
                 Section("API密钥") {
@@ -120,7 +120,7 @@ struct SidebarView: View {
 
 struct KeyListRowView: View {
     let apiKey: APIKey
-    
+
     var body: some View {
         HStack(spacing: 12) {
             if let iconImage = apiKey.providerInfo?.iconImage {
@@ -132,11 +132,11 @@ struct KeyListRowView: View {
             } else {
                 fallbackIconView
             }
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(apiKey.name)
                     .font(.headline)
-                
+
                 Text(apiKey.provider)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
@@ -144,7 +144,7 @@ struct KeyListRowView: View {
         }
         .padding(.vertical, 4)
     }
-    
+
     private var fallbackIconView: some View {
         Circle()
             .fill(providerColor)
@@ -155,7 +155,7 @@ struct KeyListRowView: View {
                     .foregroundColor(.white)
             )
     }
-    
+
     private var providerColor: Color {
         let hue = Double(apiKey.provider.hashValue % 360) / 360.0
         return Color(hue: hue, saturation: 0.7, brightness: 0.8)
