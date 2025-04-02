@@ -9,7 +9,7 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
     let baseURL: String
     let description: String
     let logoName: String?
-    let iconURL: String?
+    let defaultModel: String  // 添加默认模型属性
 
     init(
         id: UUID = UUID(),
@@ -18,7 +18,7 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
         baseURL: String,
         description: String,
         logoName: String? = nil,
-        iconURL: String? = nil
+        defaultModel: String = ""  // 默认模型参数
     ) {
         self.id = id
         self.name = name
@@ -26,7 +26,7 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
         self.baseURL = baseURL
         self.description = description
         self.logoName = logoName
-        self.iconURL = iconURL
+        self.defaultModel = defaultModel
     }
 
     static func == (lhs: APIProvider, rhs: APIProvider) -> Bool {
@@ -52,14 +52,24 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
             homepage: "https://openai.com",
             baseURL: "https://api.openai.com/v1",
             description: "提供GPT系列模型API访问的人工智能公司",
-            logoName: "openai"
+            logoName: "ProviderIcons",
+            defaultModel: "gpt-3.5-turbo"
         ),
         APIProvider(
             name: "DeepSeek",
             homepage: "https://www.deepseek.com",
             baseURL: "https://api.deepseek.com",
             description: "提供GPT系列模型API访问的人工智能公司",
-            logoName: "ProviderIcons"
+            logoName: "DeepSeekIcon",
+            defaultModel: "deepseek-chat"
+        ),
+        APIProvider(
+            name: "火山引擎",
+            homepage: "https://www.volces.com",
+            baseURL: "https://ark.cn-beijing.volces.com/api/v3",
+            description: "提供GPT系列模型API访问的人工智能公司",
+            logoName: "VolcengineIcon",
+            defaultModel: "deepseek-v3-250324"
         ),
     ]
 
@@ -77,7 +87,8 @@ struct APIProvider: Identifiable, Equatable, Codable, Hashable {
             homepage: "",
             baseURL: "",
             description: "自定义API提供商",
-            logoName: nil
+            logoName: nil,
+            defaultModel: ""
         )
     }
 }

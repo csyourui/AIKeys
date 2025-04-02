@@ -14,7 +14,7 @@ struct APIKeyDetailView: View {
     @State private var showingDeleteConfirmation = false
     @State private var isValueVisible = false
     @State private var copiedToClipboard = false
-    @StateObject private var validationViewModel = APIKeyValidationViewModel()
+    @ObservedObject var validationViewModel: APIKeyValidationViewModel
 
     var body: some View {
         ScrollView {
@@ -346,10 +346,12 @@ struct LinkRow: View {
 }
 
 #Preview {
+    let keyStore = APIKeyStore()
     let previewKey = APIKey(
         name: "测试密钥",
         provider: "OpenAI",
         value: "sk-1234567890abcdef1234567890abcdef"
     )
-    return APIKeyDetailView(keyStore: APIKeyStore(), apiKey: previewKey)
+    let validationViewModel = APIKeyValidationViewModel(apiKeyStore: keyStore)
+    return APIKeyDetailView(keyStore: keyStore, apiKey: previewKey, validationViewModel: validationViewModel)
 }

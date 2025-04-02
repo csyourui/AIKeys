@@ -8,7 +8,6 @@ struct StorableAPIKey: Identifiable, Equatable, Codable {
     let providerID: UUID?  // 关联的API提供商ID
     let dateAdded: Date
     var isValidated: Bool
-    var availableModels: [String]  // 只存储模型ID
 
     init(
         id: UUID = UUID(),
@@ -16,8 +15,7 @@ struct StorableAPIKey: Identifiable, Equatable, Codable {
         provider: String,
         providerID: UUID? = nil,
         dateAdded: Date = Date(),
-        isValidated: Bool = false,
-        availableModels: [String] = []
+        isValidated: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -25,7 +23,6 @@ struct StorableAPIKey: Identifiable, Equatable, Codable {
         self.providerID = providerID
         self.dateAdded = dateAdded
         self.isValidated = isValidated
-        self.availableModels = availableModels
     }
 
     static func == (lhs: StorableAPIKey, rhs: StorableAPIKey) -> Bool {
@@ -38,7 +35,6 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
     var base: StorableAPIKey
     let value: String
     var providerInfo: APIProvider?
-    var availableModels: [AIModel]
 
     var id: UUID { base.id }
     var name: String { base.name }
@@ -55,8 +51,7 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
         providerID: UUID? = nil,
         providerInfo: APIProvider? = nil,
         dateAdded: Date = Date(),
-        isValidated: Bool = false,
-        availableModels: [AIModel] = []
+        isValidated: Bool = false
     ) {
         self.base = StorableAPIKey(
             id: id,
@@ -64,14 +59,12 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
             provider: provider,
             providerID: providerID,
             dateAdded: dateAdded,
-            isValidated: isValidated,
-            availableModels: availableModels.map { $0.id }
+            isValidated: isValidated
         )
         self.value = value
         self.providerInfo =
             providerInfo ?? APIProvider.findCommonProvider(byName: provider)
             ?? APIProvider.createCustomProvider(name: provider)
-        self.availableModels = availableModels
     }
 
     // 获取不包含敏感值的版本，用于持久化
@@ -79,11 +72,9 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
         return base
     }
 
-    // 更新验证状态和可用模型
-    mutating func updateValidationStatus(isValidated: Bool, models: [AIModel]) {
-        self.availableModels = models
+    // 更新验证状态
+    mutating func updateValidationStatus(isValidated: Bool) {
         self.base.isValidated = isValidated
-        self.base.availableModels = models.map { $0.id }
     }
 
     static func == (lhs: APIKey, rhs: APIKey) -> Bool {

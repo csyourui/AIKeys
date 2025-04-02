@@ -45,8 +45,7 @@ class APIKeyStore: ObservableObject {
                 providerID: apiKey.providerID,
                 providerInfo: apiKey.providerInfo,
                 dateAdded: apiKey.dateAdded,
-                isValidated: apiKey.isValidated,
-                availableModels: apiKey.availableModels
+                isValidated: apiKey.isValidated
             )
         } catch {
             print("Error retrieving API key from Keychain: \(error)")
@@ -73,13 +72,11 @@ class APIKeyStore: ObservableObject {
     }
 
     // 更新API密钥的验证状态
-    func updateAPIKeyValidation(id: UUID, isValidated: Bool, models: [AIModel])
-    {
+    func updateAPIKeyValidation(id: UUID, isValidated: Bool) {
         if let index = apiKeys.firstIndex(where: { $0.id == id }) {
             var updatedKey = apiKeys[index]
             updatedKey.updateValidationStatus(
-                isValidated: isValidated,
-                models: models
+                isValidated: isValidated
             )
             apiKeys[index] = updatedKey
 
@@ -119,11 +116,6 @@ class APIKeyStore: ObservableObject {
                     account: storableKey.id.uuidString
                 )
 
-                // 从存储的模型ID创建AIModel对象
-                let models = storableKey.availableModels.map { modelId in
-                    AIModel(id: modelId, object: "model", ownedBy: "")
-                }
-
                 return APIKey(
                     id: storableKey.id,
                     name: storableKey.name,
@@ -131,8 +123,7 @@ class APIKeyStore: ObservableObject {
                     value: value,
                     providerID: storableKey.providerID,
                     dateAdded: storableKey.dateAdded,
-                    isValidated: storableKey.isValidated,
-                    availableModels: models
+                    isValidated: storableKey.isValidated
                 )
             } catch {
                 print("Error retrieving API key from Keychain: \(error)")

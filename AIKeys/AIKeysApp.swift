@@ -10,7 +10,6 @@ import SwiftUI
 @main
 struct AIKeysApp: App {
     @StateObject private var keyStore = APIKeyStore()
-
     var body: some Scene {
         WindowGroup {
             ContentView()

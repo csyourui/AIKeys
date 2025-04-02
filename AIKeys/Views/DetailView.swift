@@ -5,6 +5,9 @@ struct DetailView: View {
     @Binding var selectedAPIKey: APIKey?
     @Binding var showingHome: Bool
     @Binding var showingAddSheet: Bool
+    
+    // 为每个API密钥ID存储一个验证视图模型
+    @StateObject private var validationViewModels = ValidationViewModelStore()
 
     var body: some View {
         if showingHome {
@@ -12,7 +15,12 @@ struct DetailView: View {
             HomeView(showingAddSheet: $showingAddSheet, keyStore: keyStore)
         } else if let apiKey = selectedAPIKey {
             // 显示选中的密钥详情
-            APIKeyDetailView(keyStore: keyStore, apiKey: apiKey)
+            APIKeyDetailView(
+                keyStore: keyStore, 
+                apiKey: apiKey,
+                validationViewModel: validationViewModels.getViewModel(for: apiKey.id, keyStore: keyStore)
+            )
+                .id(apiKey.id) // 添加唯一ID，确保每次切换密钥时都创建新的视图实例
                 .toolbar {
                     ToolbarItem(placement: .automatic) {
                         Button(action: {
@@ -44,6 +52,21 @@ struct DetailView: View {
                 }
                 .buttonStyle(.bordered)
             }
+        }
+    }
+}
+
+// 存储验证视图模型的类
+class ValidationViewModelStore: ObservableObject {
+    private var viewModels: [UUID: APIKeyValidationViewModel] = [:]
+    
+    func getViewModel(for id: UUID, keyStore: APIKeyStore) -> APIKeyValidationViewModel {
+        if let viewModel = viewModels[id] {
+            return viewModel
+        } else {
+            let viewModel = APIKeyValidationViewModel(apiKeyStore: keyStore)
+            viewModels[id] = viewModel
+            return viewModel
         }
     }
 }

@@ -7,99 +7,81 @@ class APIService {
         case invalidResponse
         case unauthorized
         case serverError(Int)
-        case decodingError(Error)
+        case decodingError
+        case missingDefaultModel
         case unknown
     }
 
-    // 验证API密钥
+    // 使用聊天完成API验证API密钥
     static func validateAPIKey(
         baseURL: String,
         apiKey: String,
-        completion: @escaping (Result<[AIModel], APIError>) -> Void
+        defaultModel: String,
+        completion: @escaping (Result<Void, APIError>) -> Void
     ) {
+        // 检查默认模型
+        if defaultModel.isEmpty {
+            print("❌ Missing default model for provider")
+            completion(.failure(.missingDefaultModel))
+            return
+        }
+
         // 构建URL
-        let modelsEndpoint =
-            baseURL.hasSuffix("/") ? "\(baseURL)models" : "\(baseURL)/models"
+        let chatEndpoint =
+            baseURL.hasSuffix("/")
+            ? "\(baseURL)chat/completions"
+            : "\(baseURL)/chat/completions"
 
-        print("🔍 API Request - URL: \(modelsEndpoint)")
+        print("🔍 API Request - URL: \(chatEndpoint)")
 
-        guard let url = URL(string: modelsEndpoint) else {
-            print("❌ Invalid URL: \(modelsEndpoint)")
+        guard let url = URL(string: chatEndpoint) else {
+            print("❌ Invalid URL: \(chatEndpoint)")
             completion(.failure(.invalidURL))
             return
         }
 
         // 创建请求
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue(
-            "Bearer \(apiKey)",
-            forHTTPHeaderField: "Authorization"
-        )
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
-        // 打印请求信息
-        print("📤 Request Method: \(request.httpMethod ?? "Unknown")")
-        print(
-            "📤 Request Headers: \(request.allHTTPHeaderFields?.description ?? "None")"
-        )
+        // 创建请求体
+        let requestBody = ChatCompletionRequest(model: defaultModel)
 
-        // 执行请求
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)
+        } catch {
+            print("❌ Error encoding request body: \(error)")
+            completion(.failure(.requestFailed(error)))
+            return
+        }
+
+        // 发送请求
         let task = URLSession.shared.dataTask(with: request) {
             data,
             response,
             error in
             // 处理网络错误
             if let error = error {
-                print("❌ Network Error: \(error.localizedDescription)")
+                print("❌ Network error: \(error)")
                 completion(.failure(.requestFailed(error)))
                 return
             }
 
-            // 检查HTTP响应
+            // 检查响应
             guard let httpResponse = response as? HTTPURLResponse else {
-                print("❌ Invalid Response: Not an HTTP response")
+                print("❌ Invalid response")
                 completion(.failure(.invalidResponse))
                 return
             }
 
-            // 打印响应信息
-            print("📥 Response Status Code: \(httpResponse.statusCode)")
-            print("📥 Response Headers: \(httpResponse.allHeaderFields)")
-
-            if let data = data,
-                let responseString = String(data: data, encoding: .utf8)
-            {
-                print("📥 Response Body: \(responseString)")
-            }
-
-            // 根据状态码判断结果
+            // 根据HTTP状态码处理响应
             switch httpResponse.statusCode {
             case 200...299:
-                // 成功响应
-                print("✅ API Key Validation Successful")
-
-                // 解析模型列表
-                if let data = data {
-                    do {
-                        let modelResponse = try JSONDecoder().decode(
-                            ModelListResponse.self,
-                            from: data
-                        )
-                        print(
-                            "📋 Available Models: \(modelResponse.data.map { $0.id }.joined(separator: ", "))"
-                        )
-                        completion(.success(modelResponse.data))
-                    } catch {
-                        print(
-                            "❌ JSON Decoding Error: \(error.localizedDescription)"
-                        )
-                        completion(.failure(.decodingError(error)))
-                    }
-                } else {
-                    completion(.success([]))
-                }
-
+                // 成功
+                print("✅ API Key is valid")
+                completion(.success(()))
             case 401:
                 // 未授权（无效的API密钥）
                 print("❌ Unauthorized: Invalid API Key")
