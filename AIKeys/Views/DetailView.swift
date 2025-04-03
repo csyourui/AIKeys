@@ -23,7 +23,7 @@ struct DetailView: View {
             // 显示选中的密钥详情
             APIKeyDetailView(
                 keyStore: keyStore, 
-                apiKey: apiKey,
+                passedAPIKey: apiKey,
                 validationViewModel: validationViewModels.getViewModel(for: apiKey.id, keyStore: keyStore)
             )
                 .id(apiKey.id) // 添加唯一ID，确保每次切换密钥时都创建新的视图实例

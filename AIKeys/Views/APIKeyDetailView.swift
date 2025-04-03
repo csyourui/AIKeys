@@ -8,7 +8,7 @@ import SwiftUI
 
 struct APIKeyDetailView: View {
     @ObservedObject var keyStore: APIKeyStore
-    let apiKey: APIKey
+    let passedAPIKey: APIKey
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var showingDeleteConfirmation = false
@@ -16,6 +16,20 @@ struct APIKeyDetailView: View {
     @State private var isValueVisible = false
     @State private var copiedToClipboard = false
     @ObservedObject var validationViewModel: APIKeyValidationViewModel
+
+    // 添加初始化方法
+    init(
+        keyStore: APIKeyStore, passedAPIKey: APIKey, validationViewModel: APIKeyValidationViewModel
+    ) {
+        self.keyStore = keyStore
+        self.passedAPIKey = passedAPIKey
+        self.validationViewModel = validationViewModel
+    }
+
+    // 计算属性获取最新的 APIKey
+    private var apiKey: APIKey {
+        keyStore.apiKeys.first(where: { $0.id == passedAPIKey.id }) ?? passedAPIKey
+    }
 
     var body: some View {
         ScrollView {
@@ -74,7 +88,10 @@ struct APIKeyDetailView: View {
             validationViewModel.checkSavedValidation(apiKey: apiKey)
         }
         .sheet(isPresented: $showingEditView) {
-            APIKeyEditView(keyStore: keyStore, apiKey: apiKey)
+            APIKeyEditView(
+                keyStore: keyStore,
+                apiKey: keyStore.apiKeys[
+                    keyStore.apiKeys.firstIndex(where: { $0.id == apiKey.id })!])
         }
     }
 
@@ -380,6 +397,6 @@ struct LinkRow: View {
         value: "sk-1234567890abcdef1234567890abcdef"
     )
     let validationViewModel = APIKeyValidationViewModel(apiKeyStore: keyStore)
-    return APIKeyDetailView(
-        keyStore: keyStore, apiKey: previewKey, validationViewModel: validationViewModel)
+    APIKeyDetailView(
+        keyStore: keyStore, passedAPIKey: previewKey, validationViewModel: validationViewModel)
 }
