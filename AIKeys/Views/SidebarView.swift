@@ -6,6 +6,7 @@ struct SidebarView: View {
     @Binding var showingHome: Bool
     @Binding var showingAddSheet: Bool
     @Binding var searchText: String
+    @Binding var columnVisibility: NavigationSplitViewVisibility
 
     var filteredKeys: [APIKey] {
         if searchText.isEmpty {
@@ -64,14 +65,15 @@ struct SidebarView: View {
         List(selection: $selectedAPIKey) {
             // 导航部分
             Section("导航") {
-                NavigationLink(destination: EmptyView()) {
-                    Label("首页", systemImage: "house")
-                }
-                .tag(Optional<APIKey>.none)
-                .onTapGesture {
+                Button(action: {
                     selectedAPIKey = nil
                     showingHome = true
+                }) {
+                    Label("首页", systemImage: "house")
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .buttonStyle(.plain)
+                .tag(Optional<APIKey>.none)
 
                 Button(action: {
                     showingAddSheet = true

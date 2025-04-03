@@ -2,6 +2,8 @@ import SwiftUI
 
 struct HomeView: View {
     @Binding var showingAddSheet: Bool
+    @Binding var showingHome: Bool
+    @Binding var columnVisibility: NavigationSplitViewVisibility
     @ObservedObject var keyStore: APIKeyStore
 
     var body: some View {
@@ -61,7 +63,8 @@ struct HomeView: View {
                                 title: "查看所有密钥",
                                 icon: "list.bullet",
                                 action: {
-                                    // 这个操作由NavigationSplitView自动处理
+                                    // 显示侧边栏
+                                    columnVisibility = .all
                                 }
                             )
                         }
@@ -94,8 +97,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func statsView(count: Int, title: String, icon: String) -> some View
-    {
+    private func statsView(count: Int, title: String, icon: String) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 28))
@@ -154,5 +156,10 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(showingAddSheet: .constant(false), keyStore: APIKeyStore())
+    HomeView(
+        showingAddSheet: .constant(false), 
+        showingHome: .constant(true), 
+        columnVisibility: .constant(.automatic), 
+        keyStore: APIKeyStore()
+    )
 }

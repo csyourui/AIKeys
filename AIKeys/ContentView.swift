@@ -13,16 +13,18 @@ struct ContentView: View {
     @State private var searchText = ""
     @State private var selectedAPIKey: APIKey?
     @State private var showingHome = true  // 控制是否显示首页
+    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic  // 控制侧边栏可见性
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             // 侧边栏视图
             SidebarView(
                 keyStore: keyStore,
                 selectedAPIKey: $selectedAPIKey,
                 showingHome: $showingHome,
                 showingAddSheet: $showingAddSheet,
-                searchText: $searchText
+                searchText: $searchText,
+                columnVisibility: $columnVisibility
             )
             .sheet(isPresented: $showingAddSheet) {
                 AddAPIKeyView(keyStore: keyStore)
@@ -46,7 +48,8 @@ struct ContentView: View {
                 keyStore: keyStore,
                 selectedAPIKey: $selectedAPIKey,
                 showingHome: $showingHome,
-                showingAddSheet: $showingAddSheet
+                showingAddSheet: $showingAddSheet,
+                columnVisibility: $columnVisibility
             )
         }
         .frame(minWidth: 800, minHeight: 500)

@@ -5,6 +5,7 @@ struct DetailView: View {
     @Binding var selectedAPIKey: APIKey?
     @Binding var showingHome: Bool
     @Binding var showingAddSheet: Bool
+    @Binding var columnVisibility: NavigationSplitViewVisibility
     
     // 为每个API密钥ID存储一个验证视图模型
     @StateObject private var validationViewModels = ValidationViewModelStore()
@@ -12,7 +13,12 @@ struct DetailView: View {
     var body: some View {
         if showingHome {
             // 显示首页
-            HomeView(showingAddSheet: $showingAddSheet, keyStore: keyStore)
+            HomeView(
+                showingAddSheet: $showingAddSheet, 
+                showingHome: $showingHome, 
+                columnVisibility: $columnVisibility,
+                keyStore: keyStore
+            )
         } else if let apiKey = selectedAPIKey {
             // 显示选中的密钥详情
             APIKeyDetailView(
