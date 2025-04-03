@@ -12,6 +12,7 @@ struct APIKeyDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var showingDeleteConfirmation = false
+    @State private var showingEditView = false
     @State private var isValueVisible = false
     @State private var copiedToClipboard = false
     @ObservedObject var validationViewModel: APIKeyValidationViewModel
@@ -39,7 +40,11 @@ struct APIKeyDetailView: View {
 
                 Spacer()
 
-                deleteButton
+                HStack {
+                    modifyButton
+                    Spacer()
+                    deleteButton
+                }
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -67,6 +72,9 @@ struct APIKeyDetailView: View {
         .onAppear {
             // 在视图出现时加载持久化的验证状态
             validationViewModel.checkSavedValidation(apiKey: apiKey)
+        }
+        .sheet(isPresented: $showingEditView) {
+            APIKeyEditView(keyStore: keyStore, apiKey: apiKey)
         }
     }
 
@@ -278,6 +286,17 @@ struct APIKeyDetailView: View {
         }
     }
 
+    private var modifyButton: some View {
+        Button(action: {
+            showingEditView = true
+        }) {
+            Label("修改", systemImage: "pencil")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+    }
+
     private var deleteButton: some View {
         Button(
             role: .destructive,
@@ -285,7 +304,7 @@ struct APIKeyDetailView: View {
                 showingDeleteConfirmation = true
             }
         ) {
-            Label("删除API密钥", systemImage: "trash")
+            Label("删除", systemImage: "trash")
                 .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)

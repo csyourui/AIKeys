@@ -84,6 +84,42 @@ class APIKeyStore: ObservableObject {
             saveAPIKeys()
         }
     }
+    
+    // 更新API密钥
+    func updateAPIKey(id: UUID, name: String, provider: String, value: String, providerID: UUID?) {
+        if let index = apiKeys.firstIndex(where: { $0.id == id }) {
+            let oldKey = apiKeys[index]
+            let isValidated = oldKey.isValidated
+            let dateAdded = oldKey.dateAdded
+            
+            do {
+                // 更新Keychain中的密钥值
+                try APIKeychainManager.update(
+                    key: value,
+                    account: id.uuidString
+                )
+                
+                // 创建更新后的密钥对象
+                let updatedKey = APIKey(
+                    id: id,
+                    name: name,
+                    provider: provider,
+                    value: value,
+                    providerID: providerID,
+                    dateAdded: dateAdded,
+                    isValidated: isValidated
+                )
+                
+                // 更新内存中的对象
+                apiKeys[index] = updatedKey
+                
+                // 保存更新后的元数据
+                saveAPIKeys()
+            } catch {
+                print("Error updating API key in Keychain: \(error)")
+            }
+        }
+    }
 
     // 获取Keychain项ID
     func getKeychainItemID(for apiKey: APIKey) -> String {
