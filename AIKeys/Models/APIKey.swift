@@ -100,4 +100,9 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
     var providerDescription: String {
         return providerInfo?.description ?? "自定义API提供商"
     }
+
+    // 获取提供商默认模型
+    var providerDefaultModel: String {
+        return providerInfo?.defaultModel ?? "gpt-4o"
+    }
 }

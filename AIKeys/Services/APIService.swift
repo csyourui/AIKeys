@@ -1,6 +1,13 @@
+import Combine
 import Foundation
+import OpenAI
+import os
 
 class APIService {
+    // 创建一个日志记录器
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "com.yourui.AIKeys", category: "APIService")
+
     enum APIError: Error {
         case invalidURL
         case requestFailed(Error)
@@ -21,78 +28,87 @@ class APIService {
     ) {
         // 检查默认模型
         if defaultModel.isEmpty {
-            print("❌ Missing default model for provider")
+            logger.error("❌ 缺少默认模型")
             completion(.failure(.missingDefaultModel))
             return
         }
 
-        // 构建URL
-        let chatEndpoint =
-            baseURL.hasSuffix("/")
-            ? "\(baseURL)chat/completions"
-            : "\(baseURL)/chat/completions"
+        logger.debug("🔗 使用 API URL: \(baseURL)")
 
-        print("🔍 API Request - URL: \(chatEndpoint)")
-
-        guard let url = URL(string: chatEndpoint) else {
-            print("❌ Invalid URL: \(chatEndpoint)")
+        // 检查 URL 是否有效
+        guard let url = URL(string: baseURL) else {
+            logger.error("❌ 无效的 URL: \(baseURL)")
             completion(.failure(.invalidURL))
             return
         }
 
-        // 创建请求
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
-        // 创建请求体
-        let requestBody = ChatCompletionRequest(model: defaultModel)
-
-        do {
-            request.httpBody = try JSONEncoder().encode(requestBody)
-        } catch {
-            print("❌ Error encoding request body: \(error)")
-            completion(.failure(.requestFailed(error)))
+        // 使用 baseURL 的主机部分
+        let host: String = url.host ?? ""
+        if host.isEmpty {
+            logger.error("❌ 无效的主机: \(baseURL)")
+            completion(.failure(.invalidURL))
             return
         }
+        logger.debug("🌐 使用主机: \(host)")
 
-        // 发送请求
-        let task = URLSession.shared.dataTask(with: request) {
-            data,
-            response,
-            error in
-            // 处理网络错误
-            if let error = error {
-                print("❌ Network error: \(error)")
-                completion(.failure(.requestFailed(error)))
-                return
-            }
+        let configuration = OpenAI.Configuration(
+            token: apiKey,
+            host: host,
+            port: url.port ?? 443,
+            scheme: url.scheme ?? "https",
+            basePath: url.path.isEmpty ? "/v1" : url.path,
+            timeoutInterval: 60.0,
+            parsingOptions: .relaxed
+        )
 
-            // 检查响应
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("❌ Invalid response")
-                completion(.failure(.invalidResponse))
-                return
-            }
+        logger.debug("✅ 配置已创建")
+        let openAI = OpenAI(configuration: configuration)
+        logger.debug("📡 OpenAI 客户端已创建")
 
-            // 根据HTTP状态码处理响应
-            switch httpResponse.statusCode {
-            case 200...299:
-                // 成功
-                print("✅ API Key is valid")
-                completion(.success(()))
-            case 401:
-                // 未授权（无效的API密钥）
-                print("❌ Unauthorized: Invalid API Key")
-                completion(.failure(.unauthorized))
-            default:
-                // 其他服务器错误
-                print("❌ Server Error: Status Code \(httpResponse.statusCode)")
-                completion(.failure(.serverError(httpResponse.statusCode)))
-            }
-        }
+        // 创建请求
+        let query = ChatQuery(
+            messages: [
+                .init(role: .user, content: "你是谁")!
+            ],
+            model: .init(defaultModel),
+            maxTokens: 10
+        )
 
-        task.resume()
+        logger.debug("📤 发送请求到模型: \(defaultModel)")
+
+        // 使用 Combine 处理发布者
+        var cancellable: AnyCancellable?
+        cancellable =
+            openAI.chats(query: query)
+            .sink(
+                receiveCompletion: { completionStatus in
+                    switch completionStatus {
+                    case .finished:
+                        break  // 将在 receiveValue 中处理
+                    case .failure(let error):
+                        logger.error("❌ API 请求失败: \(error.localizedDescription)")
+                        logger.error("❌ 错误详情: \(String(describing: error))")
+                        completion(.failure(.requestFailed(error)))
+                    }
+                    cancellable?.cancel()
+                },
+                receiveValue: { chatResult in
+                    logger.debug("✅ 收到结果")
+
+                    if let content = chatResult.choices.first?.message.content {
+                        logger.info("📝 模型回复: \(content)")
+                    }
+
+                    // 处理结果
+                    if chatResult.choices.isEmpty {
+                        logger.error("❌ API 没有返回选项")
+                        completion(.failure(.invalidResponse))
+                        return
+                    }
+
+                    // 处理成功
+                    logger.info("✅ API 密钥验证成功")
+                    completion(.success(()))
+                })
     }
 }

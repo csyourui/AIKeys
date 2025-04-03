@@ -165,6 +165,14 @@ struct APIKeyDetailView: View {
                         icon: "info.circle"
                     )
                 }
+
+                if !apiKey.providerDefaultModel.isEmpty {
+                    DetailRow(
+                        title: "默认模型",
+                        value: apiKey.providerDefaultModel,
+                        icon: "cube.fill"
+                    )
+                }
             }
             .padding(.vertical, 8)
         }
@@ -353,5 +361,6 @@ struct LinkRow: View {
         value: "sk-1234567890abcdef1234567890abcdef"
     )
     let validationViewModel = APIKeyValidationViewModel(apiKeyStore: keyStore)
-    return APIKeyDetailView(keyStore: keyStore, apiKey: previewKey, validationViewModel: validationViewModel)
+    return APIKeyDetailView(
+        keyStore: keyStore, apiKey: previewKey, validationViewModel: validationViewModel)
 }

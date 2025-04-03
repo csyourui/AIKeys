@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5082E2382D9E468A00CF325A /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = 5082E2372D9E468A00CF325A /* OpenAI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		50671C192D9B8C7900ADB685 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5082E2382D9E468A00CF325A /* OpenAI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = AIKeys;
 			packageProductDependencies = (
+				5082E2372D9E468A00CF325A /* OpenAI */,
 			);
 			productName = AIKeys;
 			productReference = 50671C0A2D9B8C7800ADB685 /* AIKeys.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 50671C012D9B8C7800ADB685;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5082E2362D9E468A00CF325A /* XCRemoteSwiftPackageReference "OpenAI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 50671C0B2D9B8C7800ADB685 /* Products */;
 			projectDirPath = "";
@@ -551,6 +560,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5082E2362D9E468A00CF325A /* XCRemoteSwiftPackageReference "OpenAI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/MacPaw/OpenAI.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5082E2372D9E468A00CF325A /* OpenAI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5082E2362D9E468A00CF325A /* XCRemoteSwiftPackageReference "OpenAI" */;
+			productName = OpenAI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 50671C022D9B8C7800ADB685 /* Project object */;
 }
