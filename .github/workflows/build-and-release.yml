@@ -1,0 +1,66 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      
+      - name: Install dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies -project AIKeys.xcodeproj
+      
+      - name: Build app
+        run: |
+          xcodebuild -project AIKeys.xcodeproj -scheme AIKeys -configuration Release -derivedDataPath build
+      
+      - name: Create DMG
+        run: |
+          mkdir -p dist
+          # 使用create-dmg工具创建DMG文件
+          brew install create-dmg
+          create-dmg \
+            --volname "AIKeys" \
+            --volicon "AIKeys/Assets.xcassets/AppIcon.appiconset/Icon-macOS-512x512@2x.png" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --icon "AIKeys.app" 200 190 \
+            --hide-extension "AIKeys.app" \
+            --app-drop-link 600 185 \
+            "dist/AIKeys.dmg" \
+            "build/Build/Products/Release/AIKeys.app"
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/AIKeys.dmg
+          asset_name: AIKeys.dmg
+          asset_content_type: application/x-apple-diskimage
