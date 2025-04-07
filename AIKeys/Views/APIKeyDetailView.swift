@@ -50,8 +50,6 @@ struct APIKeyDetailView: View {
                 // 添加验证部分
                 validationSection
 
-                keychainSection
-
                 Spacer()
 
                 HStack {
@@ -115,11 +113,11 @@ struct APIKeyDetailView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(apiKey.name)
+                Text(apiKey.baseKey.name)
                     .font(.title2)
                     .fontWeight(.bold)
 
-                Text(apiKey.provider)
+                Text(apiKey.baseKey.provider)
                     .font(.headline)
                     .foregroundColor(.secondary)
             }
@@ -133,7 +131,7 @@ struct APIKeyDetailView: View {
             .fill(providerColor)
             .frame(width: 48, height: 48)
             .overlay(
-                Text(String(apiKey.provider.prefix(1).uppercased()))
+                Text(String(apiKey.baseKey.provider.prefix(1).uppercased()))
                     .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
             )
@@ -142,19 +140,24 @@ struct APIKeyDetailView: View {
     private var infoSection: some View {
         GroupBox(label: Text("基本信息").font(.headline)) {
             VStack(spacing: 12) {
-                DetailRow(title: "名称", value: apiKey.name, icon: "tag")
+                DetailRow(title: "名称", value: apiKey.baseKey.name, icon: "tag")
                 DetailRow(
                     title: "服务提供商",
-                    value: apiKey.provider,
+                    value: apiKey.baseKey.provider,
                     icon: "building.2"
                 )
                 DetailRow(
                     title: "添加日期",
-                    value: apiKey.dateAdded.formatted(
+                    value: apiKey.baseKey.dateAdded.formatted(
                         date: .long,
                         time: .shortened
                     ),
                     icon: "calendar"
+                )
+                DetailRow(
+                    title: "Keychain项ID",
+                    value: keyStore.getKeychainItemID(for: apiKey),
+                    icon: "key"
                 )
             }
             .padding(.vertical, 8)
@@ -292,17 +295,6 @@ struct APIKeyDetailView: View {
         }
     }
 
-    private var keychainSection: some View {
-        GroupBox(label: Text("Keychain信息").font(.headline)) {
-            DetailRow(
-                title: "Keychain项ID",
-                value: keyStore.getKeychainItemID(for: apiKey),
-                icon: "key"
-            )
-            .padding(.vertical, 8)
-        }
-    }
-
     private var modifyButton: some View {
         Button(action: {
             showingEditView = true
@@ -330,7 +322,7 @@ struct APIKeyDetailView: View {
     }
 
     private var providerColor: Color {
-        let hue = Double(apiKey.provider.hashValue % 360) / 360.0
+        let hue = Double(apiKey.baseKey.provider.hashValue % 360) / 360.0
         return Color(hue: hue, saturation: 0.7, brightness: 0.8)
     }
 }

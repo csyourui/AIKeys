@@ -21,10 +21,10 @@ struct APIKeyEditView: View {
     init(keyStore: APIKeyStore, apiKey: APIKey) {
         self.keyStore = keyStore
         self.apiKey = apiKey
-        
+        let baseKey = apiKey.baseKey
         // 初始化状态变量
-        _name = State(initialValue: apiKey.name)
-        _provider = State(initialValue: apiKey.provider)
+        _name = State(initialValue: baseKey.name)
+        _provider = State(initialValue: baseKey.provider)
         _value = State(initialValue: apiKey.value)
         _selectedProvider = State(initialValue: apiKey.providerInfo)
         _providerBaseURL = State(initialValue: apiKey.providerBaseURL)

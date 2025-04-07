@@ -3,6 +3,8 @@ import Foundation
 
 class APIKeyStore: ObservableObject {
     @Published var apiKeys: [APIKey] = []
+    @Published var lastUpdateTimeStamp: TimeInterval = Date().timeIntervalSince1970
+
     private let userDefaultsKey = "storedAPIKeys"
 
     init() {
@@ -39,13 +41,13 @@ class APIKeyStore: ObservableObject {
             let value = try APIKeychainManager.get(account: id.uuidString)
             return APIKey(
                 id: apiKey.id,
-                name: apiKey.name,
-                provider: apiKey.provider,
+                name: apiKey.baseKey.name,
+                provider: apiKey.baseKey.provider,
                 value: value,
-                providerID: apiKey.providerID,
+                providerID: apiKey.baseKey.providerID,
                 providerInfo: apiKey.providerInfo,
-                dateAdded: apiKey.dateAdded,
-                isValidated: apiKey.isValidated
+                dateAdded: apiKey.baseKey.dateAdded,
+                isValidated: apiKey.baseKey.isValidated
             )
         } catch {
             print("Error retrieving API key from Keychain: \(error)")
@@ -84,21 +86,21 @@ class APIKeyStore: ObservableObject {
             saveAPIKeys()
         }
     }
-    
+
     // 更新API密钥
     func updateAPIKey(id: UUID, name: String, provider: String, value: String, providerID: UUID?) {
         if let index = apiKeys.firstIndex(where: { $0.id == id }) {
             let oldKey = apiKeys[index]
-            let isValidated = oldKey.isValidated
-            let dateAdded = oldKey.dateAdded
-            
+            let isValidated = oldKey.baseKey.isValidated
+            let dateAdded = oldKey.baseKey.dateAdded
+
             do {
                 // 更新Keychain中的密钥值
                 try APIKeychainManager.update(
                     key: value,
                     account: id.uuidString
                 )
-                
+
                 // 创建更新后的密钥对象
                 let updatedKey = APIKey(
                     id: id,
@@ -109,10 +111,10 @@ class APIKeyStore: ObservableObject {
                     dateAdded: dateAdded,
                     isValidated: isValidated
                 )
-                
+
                 // 更新内存中的对象
                 apiKeys[index] = updatedKey
-                
+
                 // 保存更新后的元数据
                 saveAPIKeys()
             } catch {
@@ -128,6 +130,7 @@ class APIKeyStore: ObservableObject {
 
     // 保存API密钥元数据到UserDefaults
     private func saveAPIKeys() {
+        lastUpdateTimeStamp = Date().timeIntervalSince1970
         let storableKeys = apiKeys.map { $0.toStorable() }
         if let encoded = try? JSONEncoder().encode(storableKeys) {
             UserDefaults.standard.set(encoded, forKey: userDefaultsKey)

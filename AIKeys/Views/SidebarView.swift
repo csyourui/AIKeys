@@ -13,8 +13,8 @@ struct SidebarView: View {
             return keyStore.apiKeys
         } else {
             return keyStore.apiKeys.filter {
-                $0.name.localizedCaseInsensitiveContains(searchText)
-                    || $0.provider.localizedCaseInsensitiveContains(searchText)
+                $0.baseKey.name.localizedCaseInsensitiveContains(searchText)
+                    || $0.baseKey.provider.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -24,7 +24,9 @@ struct SidebarView: View {
             if filteredKeys.isEmpty && searchText.isEmpty {
                 emptyStateView
             } else {
-                keyListView
+                keyListView.id(
+                    keyStore.lastUpdateTimeStamp
+                )
             }
         }
         .navigationTitle("API密钥管理")
@@ -96,6 +98,15 @@ struct SidebarView: View {
                                 showingHome = false
                             }
                         }
+                        .contextMenu {
+                            Button(role: .destructive) {
+                                if filteredKeys.contains(apiKey) {
+                                    keyStore.deleteAPIKey(apiKey)
+                                }
+                            } label: {
+                                Label("删除", systemImage: "trash")
+                            }
+                        }
                     }
                     .onDelete { indexSet in
                         for index in indexSet {
@@ -136,10 +147,10 @@ struct KeyListRowView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(apiKey.name)
+                Text(apiKey.baseKey.name)
                     .font(.headline)
 
-                Text(apiKey.provider)
+                Text(apiKey.baseKey.provider)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -152,14 +163,14 @@ struct KeyListRowView: View {
             .fill(providerColor)
             .frame(width: 28, height: 28)
             .overlay(
-                Text(String(apiKey.provider.prefix(1).uppercased()))
+                Text(String(apiKey.baseKey.provider.prefix(1).uppercased()))
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
             )
     }
 
     private var providerColor: Color {
-        let hue = Double(apiKey.provider.hashValue % 360) / 360.0
+        let hue = Double(apiKey.baseKey.provider.hashValue % 360) / 360.0
         return Color(hue: hue, saturation: 0.7, brightness: 0.8)
     }
 }

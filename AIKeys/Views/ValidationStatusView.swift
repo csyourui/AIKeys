@@ -8,10 +8,18 @@ struct ValidationStatusView: View {
             HStack(spacing: 8) {
                 Image(systemName: status.icon)
                     .foregroundColor(status.color)
-
-                Text(status.description)
-                    .foregroundColor(status.color)
-                    .font(.subheadline)
+                
+                // For invalid status, use a selectable text component
+                if case .invalid = status {
+                    Text(status.description)
+                        .foregroundColor(status.color)
+                        .font(.subheadline)
+                        .textSelection(.enabled)  // Enable text selection
+                } else {
+                    Text(status.description)
+                        .foregroundColor(status.color)
+                        .font(.subheadline)
+                }
             }
         }
     }

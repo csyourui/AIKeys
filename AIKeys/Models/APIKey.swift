@@ -32,16 +32,16 @@ struct StorableAPIKey: Identifiable, Equatable, Codable {
 
 // 完整的API密钥模型，包含敏感的密钥值
 struct APIKey: Identifiable, Equatable, Codable, Hashable {
-    var base: StorableAPIKey
+    var id: UUID { baseKey.id }
+    var baseKey: StorableAPIKey
     let value: String
     var providerInfo: APIProvider?
 
-    var id: UUID { base.id }
-    var name: String { base.name }
-    var provider: String { base.provider }
-    var providerID: UUID? { base.providerID }
-    var dateAdded: Date { base.dateAdded }
-    var isValidated: Bool { base.isValidated }
+    // var name: String { base.name }
+    // var provider: String { base.provider }
+    // var providerID: UUID? { base.providerID }
+    // var dateAdded: Date { base.dateAdded }
+    // var isValidated: Bool { base.isValidated }
 
     init(
         id: UUID = UUID(),
@@ -53,7 +53,7 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
         dateAdded: Date = Date(),
         isValidated: Bool = false
     ) {
-        self.base = StorableAPIKey(
+        self.baseKey = StorableAPIKey(
             id: id,
             name: name,
             provider: provider,
@@ -69,12 +69,12 @@ struct APIKey: Identifiable, Equatable, Codable, Hashable {
 
     // 获取不包含敏感值的版本，用于持久化
     func toStorable() -> StorableAPIKey {
-        return base
+        return baseKey
     }
 
     // 更新验证状态
     mutating func updateValidationStatus(isValidated: Bool) {
-        self.base.isValidated = isValidated
+        self.baseKey.isValidated = isValidated
     }
 
     static func == (lhs: APIKey, rhs: APIKey) -> Bool {

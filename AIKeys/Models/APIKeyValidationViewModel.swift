@@ -72,7 +72,7 @@ class APIKeyValidationViewModel: ObservableObject {
 
     // 初始化时检查API密钥的验证状态
     func checkSavedValidation(apiKey: APIKey) {
-        if apiKey.isValidated {
+        if apiKey.baseKey.isValidated {
             self.status = .valid
         } else {
             self.status = .notValidated

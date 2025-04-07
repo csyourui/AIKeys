@@ -37,7 +37,7 @@ struct HomeView: View {
                     )
 
                     statsView(
-                        count: Set(keyStore.apiKeys.map { $0.provider }).count,
+                        count: Set(keyStore.apiKeys.map { $0.baseKey.provider }).count,
                         title: "服务提供商",
                         icon: "building.2"
                     )
